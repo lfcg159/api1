@@ -3,21 +3,25 @@ const router = Router();
 const { google } = require('googleapis')
 
 router.post('/', async (req, res) => {
-    const auth = new google.auth.GoogleAuth({
-        keyFile: 'credentials.json',
-        scopes: 'https://www.googleapis.com/auth/spreadsheets'
-    });
-    const client = await auth.getClient();
-    const googleSheets = google.sheets({ version: 'v4', auth: client });
-    const spreadsheetId = '1Sy0M6CAY2cnfUmK0QLP4OvaKqFOS_TcipNaA8cy5Qkw'
+    try {
+        const auth = new google.auth.GoogleAuth({
+            keyFile: 'credentials.json',
+            scopes: 'https://www.googleapis.com/auth/spreadsheets'
+        });
+        const client = await auth.getClient();
+        const googleSheets = google.sheets({ version: 'v4', auth: client });
+        const spreadsheetId = '1Sy0M6CAY2cnfUmK0QLP4OvaKqFOS_TcipNaA8cy5Qkw'
 
-    const { quotes } = req.body;
-    await addQuotes(googleSheets, quotes, {
-        auth,
-        spreadsheetId,
-    });
+        const { quotes } = req.body;
+        await addQuotes(googleSheets, quotes, {
+            auth,
+            spreadsheetId,
+        });
 
-    res.send('siuuuu');
+        res.send('siuuuu');
+    } catch (error) {
+        console.trace(error);
+    }
 })
 
 const addQuotes = async (googleSheets, quotes, credentials) => {
