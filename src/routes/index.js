@@ -11,8 +11,8 @@ router.post('/', async (req, res) => {
     const googleSheets = google.sheets({ version: 'v4', auth: client });
     const spreadsheetId = '1Sy0M6CAY2cnfUmK0QLP4OvaKqFOS_TcipNaA8cy5Qkw'
 
-    const { quote, time } = req.body;
-    await addQuotes(googleSheets, quote, time, {
+    const { quotes } = req.body;
+    await addQuotes(googleSheets, quotes, {
         auth,
         spreadsheetId,
     });
@@ -20,19 +20,38 @@ router.post('/', async (req, res) => {
     res.send('siuuuu');
 })
 
-const addQuotes = async (googleSheets, quote, time, credentials) => {
-    const date = new Date(time);
-    const daySeconds = (date.getHours() * 60 + date.getMinutes()) * 60 + date.getSeconds();
-    const day = date.getDay();
+const addQuotes = async (googleSheets, quotes, credentials) => {
+    const lastQuote = await getLastQuote(googleSheets, credentials);
+
+    console.log(createSubArrayAfterMatch(quotes.reverse(), lastQuote))
 
     googleSheets.spreadsheets.values.append({
         ...credentials,
-        range: `Sheet1!A2:C`,
+        range: `Sheet1!A2`,
         valueInputOption: 'USER_ENTERED',
         resource: {
-            values: [[getColor(quote), daySeconds, day]]
+            values: createSubArrayAfterMatch(quotes, lastQuote).map(quote => [getColor(quote), quote])
         }
     })
+}
+
+const getLastQuote = async (googleSheets, credentials) => {
+    const options = {
+        ...credentials,
+        range: 'Sheet1!B:B',
+    };
+
+    const response = await googleSheets.spreadsheets.values.get(options);
+    const data = response.data.values;
+
+    return data[data.length - 1][0];
+}
+
+const createSubArrayAfterMatch = (originalArray, matchNumber) => {
+    const matchIndex = originalArray.findIndex(num => num === Number(matchNumber.replace(',', '.')));
+    console.log(matchIndex);
+    if (matchIndex === -1) return originalArray;
+    return originalArray.slice(matchIndex + 1);
 }
 
 const getColor = (quote) => {

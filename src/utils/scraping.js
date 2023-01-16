@@ -3,15 +3,14 @@
 
 // aviator-quotes@aviator-quotes.iam.gserviceaccount.com
 
-// [...document.querySelectorAll("div.pointer")].map(item => Number(item.textContent.replace(' ', '').replace('x ','')))
-// Number(document.querySelector("div.pointer").textContent.replace(' ', '').replace('x ',''))
+// [...document.querySelectorAll("div.pointer")].map(item => Number(item.textContent.trim().replace('x ','')))
+// Number(document.querySelector("div.pointer").textContent.trim().replace('x ',''))
 
-const sendQuotes = (quote, time) => {
+const sendQuotes = (quotes) => {
     fetch('http://localhost:3000', {
         method: 'POST',
         body: JSON.stringify({
-            quote,
-            time,
+            quotes
         }),
         headers: {
             'Content-type': 'application/json; charset=UTF-8'
@@ -24,12 +23,17 @@ const sendQuotes = (quote, time) => {
 let currentQuote;
 let iteration = 0;
 setInterval(() => {
+    if (iteration === 0) {
+        const initialQuotes = [...document.querySelectorAll("div.pointer")].map(item => Number(item.textContent.replace(' ', '').replace('x ', '')));
+
+        sendQuotes(initialQuotes);
+    }
+
     const quote = Number(document.querySelector("div.pointer").textContent.replace(' ', '').replace('x ', ''))
 
-    if (quote !== currentQuote) {
-        const time = new Date().getTime();
-        sendQuotes(quote, time);
+    if (quote !== currentQuote && iteration > 0) {
         currentQuote = quote;
+        sendQuotes([quote]);
     }
 
     iteration++;
